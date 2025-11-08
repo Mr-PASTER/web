@@ -427,49 +427,45 @@ export async function getProjects(params?: ProjectsQueryParams): Promise<Project
  * Получить проект по ID
  */
 export async function getProject(id: string): Promise<Project | null> {
-  const url = `${API_BASE_URL}/projects/${id}/`;
+  // В dev режиме сначала пробуем без trailing slash, чтобы избежать редиректа и CORS
+  // В production пробуем с trailing slash
+  const urlWithoutSlash = `${API_BASE_URL}/projects/${id}`;
+  const urlWithSlash = `${API_BASE_URL}/projects/${id}/`;
 
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-      credentials: 'omit',
-    });
+  // В dev режиме пробуем сначала без trailing slash
+  const urls = import.meta.env.DEV
+    ? [urlWithoutSlash, urlWithSlash]
+    : [urlWithSlash, urlWithoutSlash];
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+      });
 
-    const data = await response.json();
-    return normalizeProject(data);
-  } catch (error) {
-    console.error('Error fetching project from:', url, error);
-    // Если ошибка CORS и мы используем прокси, попробуем без trailing slash
-    if (error instanceof TypeError && import.meta.env.DEV && url.includes('/projects/')) {
-      // Формируем URL без trailing slash, сохраняя структуру /projects/{id}
-      const urlWithoutSlash = `${API_BASE_URL}/projects/${id}`;
-      try {
-        const retryResponse = await fetch(urlWithoutSlash, {
-          method: 'GET',
-          mode: 'cors',
-          credentials: 'omit',
-        });
-        if (retryResponse.ok) {
-          const data = await retryResponse.json();
-          return normalizeProject(data);
-        }
-        if (retryResponse.status === 404) {
+      if (!response.ok) {
+        if (response.status === 404) {
           return null;
         }
-      } catch (retryError) {
-        console.error('Retry without trailing slash also failed:', retryError);
+        // Если не 404, пробуем следующий URL
+        continue;
       }
+
+      const data = await response.json();
+      return normalizeProject(data);
+    } catch (error) {
+      // Если это последняя попытка, логируем ошибку
+      if (url === urls[urls.length - 1]) {
+        console.error('Error fetching project from all URLs:', error);
+      }
+      // Пробуем следующий URL
+      continue;
     }
-    return null;
   }
+
+  return null;
 }
 
 
