@@ -35,7 +35,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 1. Make sure the default branch is `main` and all changes are pushed.
 2. In **Settings → Pages**, select **Source → GitHub Actions**.
 3. The workflow in `.github/workflows/deploy.yml` will build the app on every push to `main` and publish it to GitHub Pages.
-4. The build uses the repository name as the base path (`https://<user>.github.io/<repo>/`). If you use a custom domain or a different publishing path, set the `BASE_URL` environment variable in the workflow accordingly.
-5. The workflow copies `index.html` to `404.html`, so client-side routes keep working on refresh. If you host Pages from a custom domain that serves at the root (`/`), update `BASE_URL` to `/`.
+4. The workflow automatically sets the base path: `/` for `user.github.io` repos, or `/<repo>/` for project pages (e.g. `https://<user>.github.io/<repo>/`). Override `BASE_URL` in the workflow if you serve from a custom path/domain.
+5. The workflow copies `index.html` to `404.html`, so client-side routes keep working on refresh. GitHub Pages will handle history API fallbacks out of the box.
 
 You can trigger the deployment manually from the **Actions** tab by running the “Deploy to GitHub Pages” workflow (`workflow_dispatch`).
