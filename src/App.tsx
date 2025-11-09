@@ -8,8 +8,10 @@ import OrderPage from './pages/OrderPage';
 import './app/globals.css';
 
 export default function App() {
+  const base = import.meta.env.BASE_URL ?? '/';
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={base}>
       <div className="flex min-h-screen flex-col bg-background text-foreground">
         <Header />
         <main className="flex-grow">

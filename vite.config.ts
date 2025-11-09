@@ -2,8 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
+const base = process.env.BASE_URL ?? '/';
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  base,
   plugins: [react()],
   resolve: {
     alias: {
