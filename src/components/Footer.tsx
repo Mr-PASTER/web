@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Company Info */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold">PASTER ECO SYSTEM</h3>
+            <h3 className="mb-4 text-lg font-semibold">PASTER - SYSTEM</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Создаём решения для вашего бизнеса. Профессиональный подход к каждому проекту.
             </p>
