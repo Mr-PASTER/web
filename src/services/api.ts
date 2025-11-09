@@ -7,6 +7,24 @@ const API_BASE_URL = import.meta.env.DEV
   ? '/api' // Используем прокси в dev режиме
   : (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
+const CLEAN_API_BASE_URL = API_BASE_URL.replace(/\/+$/, '');
+const API_BASE_IS_ABSOLUTE = /^(https?:)?\/\//i.test(CLEAN_API_BASE_URL);
+const API_BASE_ORIGIN = (() => {
+  if (!API_BASE_IS_ABSOLUTE) {
+    return undefined;
+  }
+
+  const absoluteBase = CLEAN_API_BASE_URL.startsWith('//')
+    ? `https:${CLEAN_API_BASE_URL}`
+    : CLEAN_API_BASE_URL;
+
+  try {
+    return new URL(absoluteBase).origin;
+  } catch {
+    return undefined;
+  }
+})();
+
 function stringOrUndefined(value: unknown): string | undefined {
   if (typeof value === 'string') {
     const trimmed = value.trim();
@@ -36,15 +54,41 @@ function resolveAssetUrl(value: string | undefined): string | undefined {
     return undefined;
   }
 
-  if (/^(https?:)?\/\//i.test(value)) {
-    return value;
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return undefined;
   }
 
-  if (value.startsWith('/')) {
-    return `${API_BASE_URL}${value}`;
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
   }
 
-  return `${API_BASE_URL}/${value}`;
+  if (trimmed.startsWith('//')) {
+    return `https:${trimmed}`;
+  }
+
+  if (trimmed.startsWith('/')) {
+    if (API_BASE_ORIGIN) {
+      return `${API_BASE_ORIGIN}${trimmed}`;
+    }
+
+    const base = CLEAN_API_BASE_URL || '';
+    return `${base}${trimmed}`;
+  }
+
+  if (API_BASE_ORIGIN) {
+    return `${API_BASE_ORIGIN}/${trimmed.replace(/^\/+/, '')}`;
+  }
+
+  const base = CLEAN_API_BASE_URL || '';
+  const normalizedPath = trimmed.replace(/^\/+/, '');
+
+  if (!base) {
+    return `/${normalizedPath}`;
+  }
+
+  return `${base}/${normalizedPath}`;
 }
 
 function generateFallbackId(): string {

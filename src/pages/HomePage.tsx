@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import HomeProjectsSlider from '../components/HomeProjectsSlider';
 
 export default function HomePage() {
   return (
@@ -28,6 +29,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <HomeProjectsSlider />
 
     </div>
   );
