@@ -8,7 +8,8 @@ import OrderPage from './pages/OrderPage';
 import './app/globals.css';
 
 export default function App() {
-  const base = import.meta.env.BASE_URL ?? '/';
+  const rawBase = import.meta.env.BASE_URL ?? '/';
+  const base = rawBase === '/' ? rawBase : rawBase.replace(/\/+$/, '');
 
   return (
     <BrowserRouter basename={base}>
