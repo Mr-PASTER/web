@@ -21,14 +21,14 @@
          │
          ▼
 ┌─────────────────┐
-│  Vite Proxy     │  ← Прокси в dev режиме (/api → 127.0.0.1:8000)
+│  Vite Proxy     │  ← Прокси в dev режиме (/api → https://backend-web-7mkm.onrender.com)
 └────────┬────────┘
          │
          ▼
-┌─────────────────┐
-│  Backend API    │  ← Django/FastAPI сервер
-│  127.0.0.1:8000 │
-└─────────────────┘
+┌────────────────────────────────────────┐
+│  Backend API                           │  ← сервис управления рычагами
+│  https://backend-web-7mkm.onrender.com │
+└────────────────────────────────────────┘
 ```
 
 ### Поток данных
@@ -92,7 +92,7 @@ export async function getProjects(params?: ProjectsQueryParams): Promise<Project
 - Query параметры добавляются после trailing slash
 - `API_BASE_URL` зависит от режима:
   - **Dev:** `/api` (через прокси)
-  - **Production:** `http://127.0.0.1:8000` или из `VITE_API_BASE_URL`
+- **Production:** `https://backend-web-7mkm.onrender.com` или значение из `VITE_API_BASE_URL`
 
 ### 3. HTTP запрос
 
@@ -125,7 +125,7 @@ const response = await fetch(url, {
 ```typescript
 proxy: {
   '/api': {
-    target: 'http://127.0.0.1:8000',
+    target: 'https://backend-web-7mkm.onrender.com',
     changeOrigin: true,
     secure: false,
     rewrite: (path) => {
@@ -154,8 +154,8 @@ proxy: {
 
 ### Как это работает
 
-1. Запрос: `http://localhost:3001/api/projects/?limit=50`
-2. Прокси переписывает: `http://127.0.0.1:8000/projects/?limit=50`
+1. Запрос: `http://localhost:3000/api/projects/?limit=50`
+2. Прокси переписывает: `https://backend-web-7mkm.onrender.com/projects/?limit=50`
 3. Ответ проксирует обратно клиенту
 4. CORS ошибки не возникают, т.к. запрос идет с того же origin
 
