@@ -3,11 +3,7 @@ import type { Project, ProjectsResponse, ProjectsQueryParams } from '../types';
 const DEFAULT_PROJECTS_LIMIT = 12;
 const DEFAULT_PROJECT_IMAGE = 'https://placehold.co/600x400?text=Project';
 export const PROJECTS_API_ORIGIN = 'https://backend-web-7mkm.onrender.com';
-const PROJECTS_API_FALLBACK_BASE_URL = PROJECTS_API_ORIGIN;
-// В dev режиме используем прокси через Vite, в production - прямой URL
-const API_BASE_URL = import.meta.env.DEV
-  ? '/api' // Используем прокси в dev режиме
-  : (import.meta.env.VITE_API_BASE_URL || PROJECTS_API_FALLBACK_BASE_URL).replace(/\/+$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || PROJECTS_API_ORIGIN).replace(/\/+$/, '');
 
 const CLEAN_API_BASE_URL = API_BASE_URL.replace(/\/+$/, '');
 const API_BASE_IS_ABSOLUTE = /^(https?:)?\/\//i.test(CLEAN_API_BASE_URL);
