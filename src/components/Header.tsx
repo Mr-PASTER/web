@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
 
 export default function Header() {
+  const base = import.meta.env.BASE_URL ?? '/';
+  const logoSrc = `${base.replace(/\/?$/, '/') }favicon.ico`;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/80">
       <nav className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -11,7 +14,7 @@ export default function Header() {
           aria-label="Главная страница"
         >
           <img 
-            src="/favicon.ico" 
+            src={logoSrc}
             alt="Logo" 
             className="h-8 w-8"
           />

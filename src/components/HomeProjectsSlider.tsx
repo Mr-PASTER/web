@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { TouchEventHandler } from 'react';
+import type { CSSProperties, TouchEventHandler } from 'react';
 import ProjectCard from './ProjectCard';
 import { getProjects } from '../services/api';
 import type { Project } from '../types';
@@ -16,6 +16,11 @@ const TABLET_SLIDE_GROUP_SIZE = 2;
 const MOBILE_SLIDE_GROUP_SIZE = 1;
 const TABLET_BREAKPOINT_PX = 640;
 const DESKTOP_BREAKPOINT_PX = 1024;
+const CONTAINER_MAX_WIDTH_PX = 72 * 16; // tailwind max-w-6xl
+const SLIDE_HORIZONTAL_PADDING_PX = 24;
+const GRID_GAP_PX = 24;
+const CARD_MIN_WIDTH_PX = 280;
+const CARD_MAX_WIDTH_PX = 360;
 
 const getSlideGroupSize = () => {
   if (typeof window === 'undefined') {
@@ -30,6 +35,45 @@ const getSlideGroupSize = () => {
     return TABLET_SLIDE_GROUP_SIZE;
   }
   return MOBILE_SLIDE_GROUP_SIZE;
+};
+
+const getCenteredContainerWidth = (columns: number) => {
+  if (columns <= 0) {
+    return null;
+  }
+
+  const cardsWidth =
+    columns * CARD_MAX_WIDTH_PX + Math.max(0, columns - 1) * GRID_GAP_PX;
+
+  return cardsWidth + 2 * SLIDE_HORIZONTAL_PADDING_PX;
+};
+
+const createGridStyle = (
+  itemCount: number,
+  columnsPerSlide: number
+): CSSProperties => {
+  const safeItemCount = Math.max(itemCount, 0);
+  const columns = Math.max(Math.min(safeItemCount, columnsPerSlide), 1);
+  const shouldCenter =
+    columnsPerSlide > 1 && safeItemCount > 0 && safeItemCount < columnsPerSlide;
+
+  if (shouldCenter) {
+    const cardsWidth =
+      columns * CARD_MAX_WIDTH_PX + Math.max(0, columns - 1) * GRID_GAP_PX;
+
+    return {
+      gridTemplateColumns: `repeat(${columns}, minmax(${CARD_MIN_WIDTH_PX}px, ${CARD_MAX_WIDTH_PX}px))`,
+      justifyContent: 'center',
+      justifyItems: 'center',
+      marginInline: 'auto',
+      width: '100%',
+      maxWidth: `${cardsWidth}px`,
+    };
+  }
+
+  return {
+    gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+  };
 };
 
 export default function HomeProjectsSlider() {
@@ -196,7 +240,33 @@ export default function HomeProjectsSlider() {
 
         <div className="relative mx-auto max-w-6xl">
           <div
-            className="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-gray-900"
+            className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 ease-in-out dark:bg-gray-900"
+            style={(() => {
+              const activeSlideLength = slides[activeIndex]?.length ?? 0;
+              const shouldConstrainWidth =
+                !loading &&
+                slides.length > 0 &&
+                slideGroupSize > 1 &&
+                activeSlideLength > 0 &&
+                activeSlideLength < slideGroupSize;
+
+              if (!shouldConstrainWidth) {
+                return undefined;
+              }
+
+              const centeredColumns = Math.max(activeSlideLength, 1);
+              const centeredWidth = getCenteredContainerWidth(centeredColumns);
+
+              if (centeredWidth === null) {
+                return undefined;
+              }
+
+              return {
+                maxWidth: `${Math.min(centeredWidth, CONTAINER_MAX_WIDTH_PX)}px`,
+                width: '100%',
+                marginInline: 'auto',
+              };
+            })()}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -209,7 +279,10 @@ export default function HomeProjectsSlider() {
             >
               {loading ? (
                 <div className="w-full flex-shrink-0 px-4 py-6 sm:px-6">
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  <div
+                    className="grid gap-6"
+                    style={createGridStyle(slideGroupSize, slideGroupSize)}
+                  >
                     {Array.from({ length: slideGroupSize }).map((_, index) => (
                       <div key={`skeleton-${index}`} className="animate-pulse space-y-4 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                         <div className="aspect-video w-full rounded bg-gray-200 dark:bg-gray-800" />
@@ -230,7 +303,10 @@ export default function HomeProjectsSlider() {
               ) : slides.length > 0 ? (
                 slides.map((slide, slideIndex) => (
                   <div key={`slide-${slideIndex}`} className="w-full flex-shrink-0 px-4 py-6 sm:px-6">
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div
+                      className="grid gap-6"
+                      style={createGridStyle(slide.length, slideGroupSize)}
+                    >
                       {slide.map((project) => (
                         <ProjectCard key={project.id} project={project} />
                       ))}
